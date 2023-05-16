@@ -1,6 +1,6 @@
 package telran.util.test;
 
-public class Person implements Comparable<Person> {
+public class Person implements Comparable<Person>{
 	private long id;
 	private int age;
 	private String name;
