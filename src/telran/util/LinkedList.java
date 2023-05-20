@@ -2,6 +2,8 @@ package telran.util;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
 public class LinkedList<T> implements List<T> {
@@ -9,6 +11,29 @@ public class LinkedList<T> implements List<T> {
 	Node<T> tail;
 	int size;
 
+	private class LinkedListIterator implements Iterator<T> {
+		Node<T> current;
+		
+		public LinkedListIterator() {
+			current = head;
+		}
+		@Override
+		public boolean hasNext() {
+			return current != null;
+		}
+
+		@Override
+		public T next() {
+			if (!hasNext()) {
+				throw new NoSuchElementException();
+			}
+			
+			T obj = current.obj;
+			current = current.next;
+			return obj;
+		}
+	}
+	
 	private static class Node<T> {
 		T obj;
 		Node<T> next;
@@ -27,34 +52,6 @@ public class LinkedList<T> implements List<T> {
 	@Override
 	public int size() {
 		return size;
-	}
-
-	@Override
-	public boolean remove(T pattern) {
-		boolean res = false;
-		int index=indexOf (pattern);
-		if (index > -1) {
-			res = true;
-			remove (index);
-		}
-		return res;
-	}
-
-	@Override
-	public T[] toArray(T[] ar) {
-		if (ar.length < size) {
-			ar = Arrays.copyOf(ar, size);
-		}
-		Node<T> current = head;
-		int index = 0;
-		while (current != null) {
-			ar[index++] = current.obj;
-			current = current.next;
-		}
-		if (ar.length > size) {
-			ar[size] = null;
-		}
-		return ar;
 	}
 
 	@Override
@@ -87,21 +84,6 @@ public class LinkedList<T> implements List<T> {
 		}
 		
 		return getNode(index).obj;
-	}
-
-	@Override
-	public int indexOf(T pattern) {
-		return indexOf(obj -> isEqual(obj, pattern));
-	}
-	
-	@Override
-	public int lastIndexOf(T pattern) {
-		return lastIndexOf(obj -> isEqual(obj, pattern));
-	}
-
-	@Override
-	public void sort() {
-		sort((Comparator<T>)Comparator.naturalOrder());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -254,8 +236,8 @@ public class LinkedList<T> implements List<T> {
 		size--;
 	}
 
-	private boolean isEqual(T object, T pattern) {
-
-		return pattern == null  ? object == pattern : pattern.equals(object);
+	@Override
+	public Iterator<T> iterator() {
+		return new LinkedListIterator();
 	}
 }

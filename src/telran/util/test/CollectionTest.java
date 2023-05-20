@@ -73,8 +73,14 @@ public abstract class CollectionTest {
 		assertTrue(collection.removeIf(a -> a % 2 != 0));
 		runTest(expected);
 	}
+	
+	@Test
+	void toArrayTest() {
+		Integer[] expected = {10, -20, 7, 50, 100, 30};
+		runTest(expected);
+	}
 
-	private void runTest(Integer[] expected) {
+	protected void runTest(Integer[] expected) {
 		Integer [] actual = new Integer[expected.length];		
 		collection.toArray(actual);
 		assertArrayEquals(expected, actual);

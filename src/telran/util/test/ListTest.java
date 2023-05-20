@@ -2,9 +2,12 @@ package telran.util.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Iterator;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import java.util.NoSuchElementException;
 
 import telran.util.*;
 
@@ -137,15 +140,6 @@ public abstract class ListTest extends CollectionTest{
 		assertEquals(-1, list.indexOf(a -> a % 2 != 0 && a > 7));
 	}
 
-	private void runTest(Integer[] expected) {
-		int size = list.size() ;
-		Integer [] actual = new Integer[expected.length];
-		
-		for(int i = 0; i < size; i++) {
-			actual[i] = list.get(i);
-		}
-		assertArrayEquals(expected, actual);
-	}
 	static private int evenOddCompare(Integer a, Integer b) {
 		int res = Math.abs(a % 2) - Math.abs(b % 2);
 		if (res == 0) {
@@ -153,4 +147,15 @@ public abstract class ListTest extends CollectionTest{
 		}
 		return res;
 	}
+	
+	@Test
+	void iteratorTest() {
+		Iterator<Integer> it1 = list.iterator();
+		Iterator<Integer> it2 = list.iterator();
+		it2.next();it2.next();it2.next(); 
+		it2.next();it2.next();
+		assertEquals(10, it1.next());
+		assertEquals(30, it2.next());
+		assertThrows(NoSuchElementException.class, () -> it2.next());
+	}	
 }
