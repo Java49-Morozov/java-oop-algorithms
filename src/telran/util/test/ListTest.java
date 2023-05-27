@@ -148,7 +148,7 @@ public abstract class ListTest extends CollectionTest{
 		return res;
 	}
 	
-	@Test
+	/*@Test
 	void iteratorTest() {
 		Iterator<Integer> it1 = list.iterator();
 		Iterator<Integer> it2 = list.iterator();
@@ -157,5 +157,5 @@ public abstract class ListTest extends CollectionTest{
 		assertEquals(10, it1.next());
 		assertEquals(30, it2.next());
 		assertThrows(NoSuchElementException.class, () -> it2.next());
-	}	
+	}*/
 }

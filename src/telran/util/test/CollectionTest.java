@@ -2,6 +2,9 @@ package telran.util.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -31,6 +34,7 @@ public abstract class CollectionTest {
 	}
 
 	@Test
+	//!!!
 	@Disabled
 	void testSize() {
 		fail("Not yet implemented");
@@ -59,9 +63,7 @@ public abstract class CollectionTest {
 		}
 		Integer actualArray[] = collection.toArray(ar);
 		int size = collection.size();
-		for(int i = 0; i < size; i++) {
-			assertEquals(numbers[i], actualArray[i]);
-		}
+		runTest(numbers);
 		assertNull(actualArray[size]);
 		assertTrue(ar == actualArray);
 	}
@@ -79,7 +81,38 @@ public abstract class CollectionTest {
 		Integer[] expected = {10, -20, 7, 50, 100, 30};
 		runTest(expected);
 	}
-
+	
+	@Test
+	void iteratorTest() {
+		Iterator<Integer> it1 = collection.iterator();
+		Iterator<Integer> it2 = collection.iterator();
+		it2.next();
+		it2.next();
+		it2.next(); 
+		it2.next();
+		it2.next();
+		assertEquals(10, it1.next());
+		assertEquals(30, it2.next());
+		assertThrows(NoSuchElementException.class, () -> it2.next());
+	}
+	
+	@Test
+	@Disabled
+	void testRemoveIfBigArray() {
+		int BIG = 1000000;
+		Integer ar[] = new Integer[BIG];
+		for(int i = 0; i < BIG; i++) {
+			ar[i] = 10;
+		}
+		int index = collection.size();
+		while (collection.size()<BIG) {
+			collection.add(ar[index++]);
+		}
+	
+		collection.removeIf(a -> a % 1 <= 1);
+		assertEquals(0,collection.size());
+	}
+		
 	protected void runTest(Integer[] expected) {
 		Integer [] actual = new Integer[expected.length];		
 		collection.toArray(actual);

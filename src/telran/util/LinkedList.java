@@ -12,11 +12,9 @@ public class LinkedList<T> implements List<T> {
 	int size;
 
 	private class LinkedListIterator implements Iterator<T> {
-		Node<T> current;
+		Node<T> current = head;
+		boolean flNext = false;
 		
-		public LinkedListIterator() {
-			current = head;
-		}
 		@Override
 		public boolean hasNext() {
 			return current != null;
@@ -28,9 +26,22 @@ public class LinkedList<T> implements List<T> {
 				throw new NoSuchElementException();
 			}
 			
+			flNext = true;
+			
 			T obj = current.obj;
 			current = current.next;
 			return obj;
+		}
+		
+		@Override
+		public void remove() {
+			if (!flNext) {
+				throw new IllegalStateException();
+			}
+			
+			Node<T> nodeToRemove = (current == null) ? tail : current.prev;
+			removeNode (nodeToRemove);
+			flNext = false;
 		}
 	}
 	
@@ -91,15 +102,15 @@ public class LinkedList<T> implements List<T> {
 	public void sort(Comparator<T> comp) {
 		Object[] ar = new Object[size];
 		toArray((T[]) ar);
-		Arrays.sort(ar);
+		Arrays.sort((T[]) ar, comp);
 		Node<T> node = head;
 		int index = 0;
 		while (node != null) {
 			node.obj = (T) ar[index++];
 			node = node.next;
 		}
-	}	
-
+	}
+	
 	@Override
 	public int indexOf(Predicate<T> predicate) {
 		int index = 0;
@@ -122,7 +133,7 @@ public class LinkedList<T> implements List<T> {
 		return current == null ? -1 : index;
 	}
 
-	@Override
+	/*@Override
 	public boolean removeIf(Predicate<T> predicate) {
 		Node<T> current = head;
 		Node<T> next = null;
@@ -136,7 +147,7 @@ public class LinkedList<T> implements List<T> {
 
 		}
 		return oldSize > size;
-	}
+	}*/
 
 	/////////////////////////////////////////
 	

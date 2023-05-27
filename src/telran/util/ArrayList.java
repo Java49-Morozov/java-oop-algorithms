@@ -12,10 +12,11 @@ public class ArrayList<T> implements List<T> {
 	private int size;
 	
 	private class ArrayListIterator implements Iterator<T> {
-		int currentItem=-1;
+		int currentItem=0;
+		boolean flNext = false;
 		@Override
 		public boolean hasNext() {
-			return currentItem<size-1;
+			return currentItem < size;
 		}
 
 		@Override
@@ -24,9 +25,19 @@ public class ArrayList<T> implements List<T> {
 				throw new NoSuchElementException();
 			}
 			
-			currentItem++;
-			return array[currentItem];
-		}		
+			flNext = true;
+			return array[currentItem++];
+		}
+		
+		@Override
+		public void remove() {
+			if (!flNext) {
+				throw new IllegalStateException();
+			}
+			
+			ArrayList.this.remove (--currentItem);
+			flNext = false;
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -48,9 +59,26 @@ public class ArrayList<T> implements List<T> {
 		return true;
 	}
 
+	@Override
+	public boolean removeIf(Predicate<T> predicate) {
+		int oldSize = size;
+		int k = 0;
+		for (int i=0; i<size; i++) {
+			if (!predicate.test(array[i])) {
+				array[k] = array[i];
+				k++;
+			}
+		}
+		size = k;
+		
+		for (int i=size; i<oldSize; i++) {
+			array[i] = null;
+		}
+		return size < oldSize;
+	}
+
 	private void reallocate() {
 		array = Arrays.copyOf(array, array.length * 2);
-
 	}
 
 	@Override
@@ -65,7 +93,7 @@ public class ArrayList<T> implements List<T> {
 		array[index] = obj;
 		size++;
 	}
-
+	
 	@Override
 	public T remove(int index) {
 		if (index < 0 || index >= size) {
@@ -107,8 +135,7 @@ public class ArrayList<T> implements List<T> {
 					flUnSort = true;
 				}
 			}
-		}while(flUnSort);
-		
+		}while(flUnSort);		
 	}
 
 	private void swap(int i) {
@@ -142,26 +169,7 @@ public class ArrayList<T> implements List<T> {
 		}
 		return res;
 	}
-
-	@Override
-	public boolean removeIf(Predicate<T> predicate) {
-		int oldSize = size;
-//		int i = 0;
-//		while(i < size) {
-//			if(predicate.test(array[i])) {
-//				remove(i);
-//			} else {
-//				i++;
-//			}
-//		}
-		for(int i = size - 1; i >= 0; i--) {
-			if(predicate.test(array[i])) {
-				remove(i);
-			} 
-		}
-		return oldSize > size;
-	}
-
+	
 	@Override
 	public Iterator<T> iterator() {
 		return new ArrayListIterator();

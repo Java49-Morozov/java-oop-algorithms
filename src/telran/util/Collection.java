@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
+
 public interface Collection<T> extends Iterable<T> {
 	boolean add(T obj);
 	int size();
@@ -27,7 +28,18 @@ public interface Collection<T> extends Iterable<T> {
 		return ar;
 	}
 	
-	boolean removeIf(Predicate<T> predicate);
+	default boolean removeIf(Predicate<T> predicate) {
+		int oldSize = size();
+		Iterator<T> it = iterator();
+		while (it.hasNext()) {
+			T obj = it.next();
+			if (predicate.test(obj)) {
+				it.remove();
+			}
+		}
+		return oldSize > size();
+	}
+	
 	boolean contains(T pattern);
 	
 	default boolean isEqual(T object, T pattern) {

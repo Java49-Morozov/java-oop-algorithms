@@ -31,6 +31,11 @@ public class Range implements Iterable<Integer> {
 			}
 			return current++;
 		}
+		
+		@Override
+		public void remove() {
+			//TODO
+		}
 	}
 	
 	@Override

@@ -41,7 +41,7 @@ public interface List<T> extends Collection<T> {
 		return indexOf(pattern) > -1;
 	}
 	
-	@Override
+	/*@Override
 	default T[] toArray(T[] ar) {
 		int size = size();
 		if (ar.length < size) {
@@ -55,5 +55,5 @@ public interface List<T> extends Collection<T> {
 		}
 		
 		return ar;
-	}
+	}*/
 }
