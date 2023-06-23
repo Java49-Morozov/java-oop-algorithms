@@ -2,26 +2,26 @@ package telran.util.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Iterator;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import java.util.NoSuchElementException;
 
 import telran.util.*;
 
-public abstract class ListTest extends CollectionTest{
-	private static final int BIG_LENGTH = 100000;
-	List<Integer> list = getList();
+import org.junit.jupiter.api.Test;
 
-	@Override
-	protected Collection<Integer> getCollection() {
-		return list;
-	}
+
+
+abstract class ListTest extends CollectionTest{
+
+List<Integer> list = getList();
+@Override
+protected Collection<Integer> getCollection() {
+	return list;
+}
+
+	abstract protected <T> List<T> getList() ;
 	
-	abstract protected <T> List<T> getList();
-
 	@Test
 	void testAddIndex() {
 		Integer [] expected0_500 = {500, 10, -20, 7, 50, 100, 30};
@@ -37,9 +37,8 @@ public abstract class ListTest extends CollectionTest{
 				() ->list.add(list.size() + 1, 100));
 		assertThrowsExactly(IndexOutOfBoundsException.class,
 				() ->list.add(-1, 100));
+		
 	}
-
-
 	@Test
 	void testRemoveIndex() {
 		Integer [] expectedNo10 = { -20, 7, 50, 100, 30};
@@ -55,8 +54,8 @@ public abstract class ListTest extends CollectionTest{
 				() -> list.remove(3));
 		assertThrowsExactly(IndexOutOfBoundsException.class,
 				() -> list.remove(-3));
+		
 	}
-
 	@Test
 	void testGetIndex() {
 		assertEquals(10, list.get(0));
@@ -65,21 +64,20 @@ public abstract class ListTest extends CollectionTest{
 		assertThrowsExactly(IndexOutOfBoundsException.class,
 				() -> list.get(-1));
 	}
-
+	
 	@Test
 	void testIndexOf() {
 		list.add(3, 1280);
 		assertEquals(3, list.indexOf(1280));
 		assertEquals(-1, list.indexOf((Integer)null));
 	}
-
 	@Test
 	void testLastIndexOf() {
 		list.add(3, 10);
 		assertEquals(3, list.lastIndexOf(10));
 		assertEquals(-1, list.lastIndexOf((Integer)null));
 	}
-
+	
 	@Test
 	void testSort() {
 		Integer expected[] = {-20, 7, 10, 30,  50, 100 };
@@ -87,7 +85,6 @@ public abstract class ListTest extends CollectionTest{
 		assertArrayEquals(expected,
 				list.toArray(new Integer[0]));
 	}
-
 	@Test
 	void testSortPersons() {
 		List<Person> persons = getList();
@@ -114,32 +111,43 @@ public abstract class ListTest extends CollectionTest{
 		persons.sort((prs1, prs2) -> Integer.compare(prs2.getAge(), prs1.getAge()));
 	
 		assertArrayEquals(expected,
-				persons.toArray(new Person[0]));		
+				persons.toArray(new Person[0]));
+		
 	}
 	@Test
-	@Disabled
 	void testEvenOddSorting() {
 		Integer[] expected = { -20,  10, 30, 50, 100, 7, -17};
 		list.add(-17);
 		//list.sort((a, b) -> evenOddCompare(a, b));
-//			list.sort((a, b) -> {
-//				int res = Math.abs(a % 2) - Math.abs(b % 2);
-//				if (res == 0) {
-//					res = a % 2 == 0 ? a - b : b - a;
-//				}
-//				return res;
-//			});
+//		list.sort((a, b) -> {
+//			int res = Math.abs(a % 2) - Math.abs(b % 2);
+//			if (res == 0) {
+//				res = a % 2 == 0 ? a - b : b - a;
+//			}
+//			return res;
+//		});
 		list.sort(ListTest::evenOddCompare);
 		assertArrayEquals(expected, list.toArray(new Integer[0]));
 	}
-
 	@Test
-	void testIndexOfPredicate() {
+	void testIndexOfPredicate()  {
 		assertEquals(1, list.indexOf(a -> a < 0));
 		list.add(-17);
 		assertEquals(-1, list.indexOf(a -> a % 2 != 0 && a > 7));
 	}
-
+	@Override
+	protected Integer[] getActual(Integer[] array, int size) {
+		
+		return array;
+	}
+	@Override
+	protected Integer[] getExpected(Integer[] array) {
+		
+		return array;
+	}
+	
+	
+	
 	static private int evenOddCompare(Integer a, Integer b) {
 		int res = Math.abs(a % 2) - Math.abs(b % 2);
 		if (res == 0) {
@@ -147,15 +155,5 @@ public abstract class ListTest extends CollectionTest{
 		}
 		return res;
 	}
-	
-	/*@Test
-	void iteratorTest() {
-		Iterator<Integer> it1 = list.iterator();
-		Iterator<Integer> it2 = list.iterator();
-		it2.next();it2.next();it2.next(); 
-		it2.next();it2.next();
-		assertEquals(10, it1.next());
-		assertEquals(30, it2.next());
-		assertThrows(NoSuchElementException.class, () -> it2.next());
-	}*/
+
 }

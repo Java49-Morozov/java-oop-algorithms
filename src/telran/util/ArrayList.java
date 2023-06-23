@@ -11,35 +11,33 @@ public class ArrayList<T> implements List<T> {
 	private T[] array;
 	private int size;
 	
-	private class ArrayListIterator implements Iterator<T> {
-		int currentItem=0;
-		boolean flNext = false;
-		@Override
-		public boolean hasNext() {
-			return currentItem < size;
-		}
-
-		@Override
-		public T next() {
-			if (!hasNext()) {
-				throw new NoSuchElementException();
-			}
-			
-			flNext = true;
-			return array[currentItem++];
-		}
+private class ArrayListIterator implements Iterator<T> {
+int currentIndex = 0;
+boolean flNext = false;
+	@Override
+	public boolean hasNext() {
 		
-		@Override
-		public void remove() {
-			if (!flNext) {
-				throw new IllegalStateException();
-			}
-			
-			ArrayList.this.remove (--currentItem);
-			flNext = false;
-		}
+		return currentIndex < size;
 	}
 
+	@Override
+	public T next() {
+		if(!hasNext()) {
+			throw new NoSuchElementException();
+		}
+		flNext = true;
+		return array[currentIndex++];
+	}
+	@Override
+	public void remove() {
+		if(!flNext) {
+			throw new IllegalStateException();
+		}
+		ArrayList.this.remove(--currentIndex);
+		flNext = false;
+	}
+	
+}
 	@SuppressWarnings("unchecked")
 	public ArrayList(int capacity) {
 		array = (T[]) new Object[capacity];
@@ -58,27 +56,27 @@ public class ArrayList<T> implements List<T> {
 		size++;
 		return true;
 	}
-
 	@Override
 	public boolean removeIf(Predicate<T> predicate) {
+		// rewrite the removeIf method of ArrayList for optimization (O[N])
 		int oldSize = size;
-		int k = 0;
-		for (int i=0; i<size; i++) {
-			if (!predicate.test(array[i])) {
-				array[k] = array[i];
-				k++;
+		int indexDest = 0;
+		for(int indexSrc = 0; indexSrc < oldSize; indexSrc++) {
+			if (predicate.test(array[indexSrc])) {
+				size--;
+			} else {
+				array[indexDest++] = array[indexSrc];
 			}
 		}
-		size = k;
-		
-		for (int i=size; i<oldSize; i++) {
+		for (int i = size; i < oldSize; i++) {
 			array[i] = null;
 		}
-		return size < oldSize;
+		return oldSize > size;
 	}
 
 	private void reallocate() {
 		array = Arrays.copyOf(array, array.length * 2);
+
 	}
 
 	@Override
@@ -93,7 +91,7 @@ public class ArrayList<T> implements List<T> {
 		array[index] = obj;
 		size++;
 	}
-	
+
 	@Override
 	public T remove(int index) {
 		if (index < 0 || index >= size) {
@@ -135,13 +133,15 @@ public class ArrayList<T> implements List<T> {
 					flUnSort = true;
 				}
 			}
-		}while(flUnSort);		
+		}while(flUnSort);
+		
 	}
 
 	private void swap(int i) {
 		T tmp = array[i];
 		array[i] = array[i + 1];
-		array[i + 1] = tmp;		
+		array[i + 1] = tmp;
+		
 	}
 
 	@Override
@@ -169,9 +169,12 @@ public class ArrayList<T> implements List<T> {
 		}
 		return res;
 	}
+
 	
 	@Override
 	public Iterator<T> iterator() {
+		
 		return new ArrayListIterator();
 	}
+
 }

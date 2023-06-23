@@ -5,110 +5,121 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class HashSet<T> implements Set<T> {
-	private static final int DEFAULT_HASHTABLE_SIZE = 16;
+	private static final int DEFAULT_HASH_TABLE_SIZE = 16;
 	private LinkedList<T>[] hashTable;
 	private int size;
-	
 	private class HashSetIterator implements Iterator<T> {
-		int currentIndex = 0;
-		Iterator<T> currentIt;
+		Integer currentIteratorIndex;
+		Iterator<T> currentIterator;
+		Iterator<T> prevIterator;
 		boolean flNext = false;
-		
-		public HashSetIterator() {
-			while (hashTable[currentIndex] == null && currentIndex < hashTable.length) {
+		HashSetIterator() {
+			initialState();
+		}
+		private void initialState() {
+			currentIteratorIndex = getCurrentIteratorIndex(-1);
+			if(currentIteratorIndex > -1) {
+				currentIterator = hashTable[currentIteratorIndex].iterator();
+			}
+		}
+		private int getCurrentIteratorIndex(int currentIndex) {
+			currentIndex++;
+			while(currentIndex < hashTable.length && 
+					(hashTable[currentIndex] == null || hashTable[currentIndex].size() == 0)) {
 				currentIndex++;
 			}
-			currentIt = (Iterator<T>) hashTable[currentIndex].iterator();
+			return currentIndex < hashTable.length ? currentIndex : -1;
 		}
-		
 		@Override
 		public boolean hasNext() {
-			boolean res = false;
-			if (currentIt.hasNext()) {
-				res = true;
-			} else {
-				currentIndex++;
-				while (currentIndex < hashTable.length && hashTable[currentIndex] == null) {
-					currentIndex++;
-				}
-				if (currentIndex < hashTable.length) {
-					currentIt = (Iterator<T>) hashTable[currentIndex].iterator();
-					res = true;
-				}
-			}
-			return res;
+			
+			return currentIteratorIndex >= 0;
 		}
 
 		@Override
 		public T next() {
-			if (!hasNext()) {
+			if(!hasNext()) {
 				throw new NoSuchElementException();
 			}
-			
+			T res = currentIterator.next();
+			prevIterator = currentIterator;
+			updateState();
 			flNext = true;
-			T obj = currentIt.next();
-			return obj;
+			return res;
 		}
-		
+		private void updateState() {
+			if(!currentIterator.hasNext()) {
+				currentIteratorIndex =
+						getCurrentIteratorIndex(currentIteratorIndex);
+				if(currentIteratorIndex >= 0) {
+					currentIterator = hashTable[currentIteratorIndex].iterator();
+				}
+			}
+			
+			
+		}
 		@Override
 		public void remove() {
-			if (!flNext) {
+			if(!flNext) {
 				throw new IllegalStateException();
 			}
-			
-			currentIt.remove();
+			prevIterator.remove();
 			size--;
-			if (hashTable[currentIndex].size() == 0) {
-				hashTable[currentIndex] = null;
-				int currentIndexSav = currentIndex;
-				while (currentIndex >= 0 && hashTable[currentIndex] == null) {
-					currentIndex--;
-				}
-				currentIndex = (currentIndex < 0) ? currentIndexSav + 1 : currentIndex + 1;
-				while (currentIndex < hashTable.length && hashTable[currentIndex] == null) {
-					currentIndex++;	
-				}
-				if (currentIndex >= 0 && currentIndex < hashTable.length)
-					currentIt = (Iterator<T>) hashTable[currentIndex].iterator();
-			}
 			flNext = false;
-		}		
+		}
+		
 	}
-	
 	@SuppressWarnings("unchecked")
-	public HashSet (int hashTableSize) {
+	public HashSet(int hashTableSize) {
 		hashTable = new LinkedList[hashTableSize];
 	}
-	
-	public HashSet( ) {
-		this (DEFAULT_HASHTABLE_SIZE);
+	public HashSet() {
+		this(DEFAULT_HASH_TABLE_SIZE);
 	}
-	
 	@Override
 	public Iterator<T> iterator() {
+		
 		return new HashSetIterator();
-	}
-	
-	@Override
-	public boolean add(T obj) {
-		if (size >= 0.75*hashTable.length) {
-			recreation();
-		}
-		boolean res = false;
-		int hashIndex = getHashTableIndex(obj);
-		if (hashTable[hashIndex] == null) {
-			hashTable[hashIndex] = new LinkedList<>();
-		}
-		if (!hashTable[hashIndex].contains(obj)) {
-			hashTable[hashIndex].add(obj);
-			res = true;
-			size++;
-		}
-		return res;
 	}
 
 	@Override
+	public boolean add(T obj) {
+		boolean res = false;
+		if(size >= 0.75 * hashTable.length) {
+			recreation();
+		}
+		int index = getHashTableIndex(obj);
+		if(hashTable[index] == null) {
+			hashTable[index] = new LinkedList<>();
+		}
+		if(!hashTable[index].contains(obj)) {
+			hashTable[index].add(obj);
+			size++;
+			res = true;
+		}
+		
+		return res;
+	}
+
+	private int getHashTableIndex(T obj) {
+		
+		return Math.abs(obj.hashCode()) % hashTable.length;
+	}
+	private void recreation() {
+		HashSet<T> tmp = new HashSet<>(hashTable.length * 2);
+		for (int i = 0; i < hashTable.length; i++) {
+			if (hashTable[i] != null) {
+				for (T obj : hashTable[i]) {
+					tmp.add(obj);
+				} 
+			}
+		}
+		this.hashTable = tmp.hashTable;
+		
+	}
+	@Override
 	public int size() {
+		
 		return size;
 	}
 
@@ -120,9 +131,6 @@ public class HashSet<T> implements Set<T> {
 			res = hashTable[index].remove(pattern);
 			if (res) {
 				size--;
-				if (hashTable[index].size() == 0) {
-					hashTable[index] = null;
-				}
 			}
 		}
 		return res;
@@ -133,47 +141,20 @@ public class HashSet<T> implements Set<T> {
 		int index = getHashTableIndex(pattern);
 		return hashTable[index] != null && hashTable[index].contains(pattern);
 	}
-
-	/*@Override
-	public T[] toArray(T[] ar) {
-		int size = size();
-		if (ar.length < size) {
-			ar = Arrays.copyOf(ar, size);
-		}
-		
-		int index = 0;
-		for (int i=0; i<hashTable.length; i++) {
-			if (hashTable[i] != null) {
-				Iterator<T> it = hashTable[i].iterator();
-				while (it.hasNext()) {
-					ar[index++] = (T) it.next();
+	@Override
+	public T get(T pattern) {
+		T res = null;
+		int index = getHashTableIndex(pattern);
+		if(hashTable[index] != null) {
+			List<T> list = hashTable[index];
+			Iterator<T> it = list.iterator();
+			while(it.hasNext() && res == null) {
+				T obj = it.next();
+				if (obj.equals(pattern)) {
+					res = obj;
 				}
 			}
 		}
-		
-		if (ar.length > size) {
-			ar[size] = null;
-		}
-		return ar;
-	}*/
-
-	//////////////////////////////////////////////////////////////////
-	
-	private int getHashTableIndex(T obj) {
-		return Math.abs(obj.hashCode()) % hashTable.length;
-	}
-	
-	private void recreation() {
-		HashSet<T> tmp = new HashSet<>(hashTable.length * 2);
-		for (int i=0; i<hashTable.length; i++) {
-			if (hashTable[i] != null) {
-				for (int k=0; k<hashTable[i].size; k++) {
-					T obj = hashTable[i].get(k);
-					tmp.add(obj);
-				}
-			}
-		}
-		
-		this.hashTable = tmp.hashTable;
+		return res;
 	}
 }

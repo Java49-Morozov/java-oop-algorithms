@@ -10,69 +10,70 @@ public class LinkedList<T> implements List<T> {
 	Node<T> head;
 	Node<T> tail;
 	int size;
-
-	private class LinkedListIterator implements Iterator<T> {
-		Node<T> current = head;
-		boolean flNext = false;
+private class LinkedListIterator implements Iterator<T> {
+Node<T> current = head;
+boolean flNext = false;
+	@Override
+	public boolean hasNext() {
 		
-		@Override
-		public boolean hasNext() {
-			return current != null;
-		}
+		return current != null;
+	}
 
-		@Override
-		public T next() {
-			if (!hasNext()) {
-				throw new NoSuchElementException();
-			}
-			
-			flNext = true;
-			
-			T obj = current.obj;
-			current = current.next;
-			return obj;
+	@Override
+	public T next() {
+		if (!hasNext()) {
+			throw new NoSuchElementException();
 		}
-		
-		@Override
-		public void remove() {
-			if (!flNext) {
-				throw new IllegalStateException();
-			}
-			
-			Node<T> nodeToRemove = (current == null) ? tail : current.prev;
-			removeNode (nodeToRemove);
-			flNext = false;
+		T res = current.obj;
+		current = current.next;
+		flNext = true;
+		return res;
+	}
+	@Override
+	public void remove() {
+		if (!flNext) {
+			throw new IllegalStateException();
 		}
+		Node<T> removedNode = current != null ? current.prev : tail;
+		removeNode(removedNode);
+		flNext = false;
 	}
 	
+	
+}
 	private static class Node<T> {
 		T obj;
 		Node<T> next;
 		Node<T> prev;
+
 		Node(T obj) {
 			this.obj = obj;
 		}
 	}
-	
+
 	@Override
 	public boolean add(T obj) {
-		add (size, obj);
+		add(size, obj);
 		return true;
 	}
 
 	@Override
 	public int size() {
+
 		return size;
 	}
 
+	
+
+	
 	@Override
 	public void add(int index, T obj) {
 		if (index < 0 || index > size) {
 			throw new IndexOutOfBoundsException(index);
 		}
-		
 		Node<T> node = new Node<>(obj);
 		addNode(index, node);
+
 	}
 
 	@Override
@@ -80,7 +81,6 @@ public class LinkedList<T> implements List<T> {
 		if (index < 0 || index >= size) {
 			throw new IndexOutOfBoundsException(index);
 		}
-		
 		Node<T> node = getNode(index);
 		removeNode(node);
 		T res = node.obj;
@@ -93,24 +93,37 @@ public class LinkedList<T> implements List<T> {
 		if (index < 0 || index >= size) {
 			throw new IndexOutOfBoundsException(index);
 		}
-		
+
 		return getNode(index).obj;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void sort(Comparator<T> comp) {
-		Object[] ar = new Object[size];
-		toArray((T[]) ar);
-		Arrays.sort((T[]) ar, comp);
-		Node<T> node = head;
-		int index = 0;
-		while (node != null) {
-			node.obj = (T) ar[index++];
-			node = node.next;
-		}
+		//1. call the method toArray
+		//2. By applying Arrays.sort you sort the array from #1
+		//3. Passing over all LinkedList nodes and setting references to objects (T)
+		// in the appropriate order from #2
+		T[] array = toArray();
+	    Arrays.sort(array, comp);
+	    Node<T>current = head;
+	    int index = 0;
+	    while(current != null) {
+	    	current.obj = array[index++];
+	    	current = current.next;
+	    }
+
 	}
-	
+	private T[] toArray() {
+		@SuppressWarnings("unchecked")
+		T[] array = (T[]) new Object[size];
+	    Node<T> current = head;
+	    int index = 0;
+	    while(current != null) {
+	    	array[index++] = current.obj;
+	    	current = current.next;
+	    }
+	    return array;
+	}
 	@Override
 	public int indexOf(Predicate<T> predicate) {
 		int index = 0;
@@ -133,36 +146,17 @@ public class LinkedList<T> implements List<T> {
 		return current == null ? -1 : index;
 	}
 
-	/*@Override
-	public boolean removeIf(Predicate<T> predicate) {
-		Node<T> current = head;
-		Node<T> next = null;
-		int oldSize = size;
-		while (current != null) {
-			next = current.next;
-			if (predicate.test(current.obj)) {
-				removeNode(current);
-			}
-			current = next;
-
-		}
-		return oldSize > size;
-	}*/
-
-	/////////////////////////////////////////
 	
-	private void addNode(int index, Node<T> node) 
-	{
+
+	private void addNode(int index, Node<T> node) {
 		if (head == null) {
 			head = tail = node;
 		} else {
 			if (index == 0) {
 				addNodeHead(node);
-			} 
-			else if (index == size) {
+			} else if (index == size) {
 				addNodeTail(node);
-			} 
-			else {
+			} else {
 				addNodeMiddle(index, node);
 			}
 		}
@@ -174,20 +168,23 @@ public class LinkedList<T> implements List<T> {
 		head.prev = node;
 		head = node;
 	}
+
 	private void addNodeTail(Node<T> node) {
 		node.prev = tail;
 		tail.next = node;
 		tail = node;
 	}
+
 	private void addNodeMiddle(int index, Node<T> node) {
 		Node<T> nodeA = getNode(index);
 		Node<T> nodeBefore = nodeA.prev;
 		node.prev = nodeBefore;
 		node.next = nodeA;
 		nodeBefore.next = node;
-		nodeA.prev = node;		
+		nodeA.prev = node;
+
 	}
-	
+
 	private Node<T> getNode(int index) {
 
 		return index > size / 2 ? getNodeFromRight(index) : getNodeFromLeft(index);
